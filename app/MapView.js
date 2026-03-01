@@ -2,117 +2,28 @@
 
 import { useEffect, useState } from 'react';
 
-// Simplified GeoJSON-like coordinates for Middle East countries
-const COUNTRIES_GEO = {
-  gaza: {
-    name: 'Gaza Strip',
-    threat: 'critical',
-    color: '#ff3d3d',
-    // Approximate polygon coordinates
-    bounds: [[31.2, 34.2], [31.7, 34.6]],
-    hits: [
-      { lat: 31.5, lng: 34.35, time: '2026-03-01 04:00', type: 'Airstrike' },
-      { lat: 31.35, lng: 34.25, time: '2026-03-01 03:30', type: 'Artillery' },
-      { lat: 31.55, lng: 34.4, time: '2026-03-01 02:15', type: 'Missile' },
-    ]
-  },
-  israel: {
-    name: 'Israel',
-    threat: 'target',
-    color: '#ff3d3d',
-    bounds: [[29.5, 34.2], [33.3, 36.0]],
-    hits: [
-      { lat: 31.2, lng: 34.5, time: '2026-03-01 04:15', type: 'Missile Intercept' },
-      { lat: 32.1, lng: 34.9, time: '2026-03-01 03:00', type: 'Rocket' },
-    ]
-  },
-  lebanon: {
-    name: 'Lebanon',
-    threat: 'high',
-    color: '#ff6b35',
-    bounds: [[33.0, 35.0], [34.7, 36.6]],
-    hits: [
-      { lat: 33.5, lng: 35.5, time: '2026-03-01 03:30', type: 'Artillery' },
-      { lat: 33.2, lng: 35.3, time: '2026-03-01 02:00', type: 'Airstrike' },
-    ]
-  },
-  syria: {
-    name: 'Syria',
-    threat: 'high',
-    color: '#ff6b35',
-    bounds: [[32.3, 35.5], [37.3, 42.4]],
-    hits: [
-      { lat: 35.2, lng: 36.8, time: '2026-03-01 02:15', type: 'Airstrike' },
-      { lat: 33.5, lng: 36.5, time: '2026-03-01 01:00', type: 'Clash' },
-    ]
-  },
-  westbank: {
-    name: 'West Bank',
-    threat: 'high',
-    color: '#ff6b35',
-    bounds: [[31.3, 34.9], [32.5, 35.6]],
-    hits: [
-      { lat: 31.9, lng: 35.2, time: '2026-03-01 01:00', type: 'Clash' },
-    ]
-  },
-  jordan: {
-    name: 'Jordan',
-    threat: 'medium',
-    color: '#ff9500',
-    bounds: [[29.2, 34.6], [33.4, 39.3]],
-    hits: []
-  },
-  iraq: {
-    name: 'Iraq',
-    threat: 'low',
-    color: '#6b7280',
-    bounds: [[29.5, 38.9], [37.4, 49.0]],
-    hits: []
-  },
-  iran: {
-    name: 'Iran',
-    threat: 'medium',
-    color: '#ff9500',
-    bounds: [[25.0, 44.0], [39.8, 63.3]],
-    hits: [
-      { lat: 32.5, lng: 53.5, time: '2026-02-27 12:00', type: 'Nuclear Site' },
-    ]
-  },
-  yemen: {
-    name: 'Yemen',
-    threat: 'low',
-    color: '#6b7280',
-    bounds: [[12.1, 41.8], [19.0, 56.5]],
-    hits: []
-  },
-  saudi: {
-    name: 'Saudi Arabia',
-    threat: 'low',
-    color: '#6b7280',
-    bounds: [[16.4, 34.5], [32.2, 55.7]],
-    hits: []
-  },
-  turkey: {
-    name: 'Turkey',
-    threat: 'low',
-    color: '#6b7280',
-    bounds: [[35.8, 26.0], [42.1, 44.8]],
-    hits: []
-  },
+// Simple pin points for conflict zones
+const CONFLICT_ZONES = [
+  { id: 1, name: 'Gaza Strip', lat: 31.4217, lng: 34.3985, status: 'active', lastHit: '2026-03-01 04:00', type: 'Airstrike' },
+  { id: 2, name: 'Lebanon', lat: 33.8547, lng: 35.8623, status: 'active', lastHit: '2026-03-01 03:30', type: 'Artillery' },
+  { id: 3, name: 'Syria', lat: 34.8021, lng: 38.9968, status: 'active', lastHit: '2026-03-01 02:15', type: 'Airstrike' },
+  { id: 4, name: 'West Bank', lat: 31.9092, lng: 35.3739, status: 'active', lastHit: '2026-03-01 01:00', type: 'Clash' },
+  { id: 5, name: 'Israel', lat: 31.0461, lng: 34.8516, status: 'target', lastHit: '2026-03-01 04:15', type: 'Missile Intercept' },
+  { id: 6, name: 'Iran', lat: 32.4279, lng: 53.6880, status: 'watch', lastHit: '2026-02-27 12:00', type: 'Nuclear Site' },
+  { id: 7, name: 'Iraq', lat: 33.2232, lng: 43.6793, status: 'watch', lastHit: '2026-02-28 22:00', type: 'Military Activity' },
+  { id: 8, name: 'Yemen', lat: 15.5527, lng: 48.5164, status: 'watch', lastHit: '2026-02-28 18:00', type: 'Airstrike' },
+];
+
+const STATUS_COLORS = {
+  active: '#ff3d3d',
+  target: '#ff3d3d',
+  watch: '#ff9500',
 };
 
-const THREAT_LEVELS = {
-  critical: { label: 'Critical', color: '#ff3d3d', bg: 'rgba(255, 61, 61, 0.2)' },
-  high: { label: 'High', color: '#ff6b35', bg: 'rgba(255, 107, 53, 0.2)' },
-  medium: { label: 'Medium', color: '#ff9500', bg: 'rgba(255, 149, 0, 0.2)' },
-  low: { label: 'Low', color: '#6b7280', bg: 'rgba(107, 114, 128, 0.2)' },
-  target: { label: 'Target', color: '#ff3d3d', bg: 'rgba(255, 61, 61, 0.2)' },
-};
-
-export default function MapView({ zones }) {
+export default function MapView() {
   const [mounted, setMounted] = useState(false);
   const [map, setMap] = useState(null);
-  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedZone, setSelectedZone] = useState(null);
 
   useEffect(() => {
     setMounted(true);
@@ -143,75 +54,68 @@ export default function MapView({ zones }) {
         maxZoom: 19,
       }).addTo(mapInstance);
 
-      // Draw country borders with threat coloring
-      Object.entries(COUNTRIES_GEO).forEach(([key, country]) => {
-        const threatLevel = THREAT_LEVELS[country.threat];
+      // Add glowing pin markers
+      CONFLICT_ZONES.forEach((zone) => {
+        const color = STATUS_COLORS[zone.status] || STATUS_COLORS.active;
         
-        // Create rectangle polygon for country
-        const bounds = country.bounds;
-        const polygon = L.rectangle(bounds, {
-          color: country.color,
-          weight: country.threat === 'critical' || country.threat === 'target' ? 4 : 
-                  country.threat === 'high' ? 3 : 2,
-          fillColor: country.color,
-          fillOpacity: country.threat === 'critical' || country.threat === 'target' ? 0.3 :
-                      country.threat === 'high' ? 0.2 : 0.1,
-          dashArray: country.threat === 'low' ? '5, 10' : null,
-        }).addTo(mapInstance);
-
-        // Click to select country
-        polygon.on('click', () => {
-          setSelectedCountry(COUNTRIES_GEO[key]);
-          const center = [
-            (bounds[0][0] + bounds[1][0]) / 2,
-            (bounds[0][1] + bounds[1][1]) / 2
-          ];
-          mapInstance.flyTo(center, 7, { duration: 1 });
+        // Glowing marker
+        const icon = L.divIcon({
+          html: `
+            <div style="
+              position: relative;
+              width: 20px;
+              height: 20px;
+            ">
+              <div style="
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background: ${color};
+                border-radius: 50%;
+                border: 2px solid white;
+                box-shadow: 0 0 10px ${color}, 0 0 20px ${color}, 0 0 40px ${color}60;
+                animation: pulse-pin 2s ease-in-out infinite;
+              "></div>
+              <div style="
+                position: absolute;
+                bottom: -8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-top: 10px solid ${color};
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+              "></div>
+            </div>
+            <style>
+              @keyframes pulse-pin {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.3); opacity: 0.7; }
+              }
+            </style>
+          `,
+          className: 'glowing-marker',
+          iconSize: [20, 30],
+          iconAnchor: [10, 30],
         });
 
-        // Hover effects
-        polygon.on('mouseover', function() {
-          this.setStyle({ 
-            fillOpacity: country.threat === 'critical' || country.threat === 'target' ? 0.5 : 0.35,
-            weight: country.threat === 'critical' || country.threat === 'target' ? 6 : 
-                    country.threat === 'high' ? 5 : 3,
-          });
-        });
-        polygon.on('mouseout', function() {
-          this.setStyle({ 
-            fillOpacity: country.threat === 'critical' || country.threat === 'target' ? 0.3 :
-                        country.threat === 'high' ? 0.2 : 0.1,
-            weight: country.threat === 'critical' || country.threat === 'target' ? 4 :
-                    country.threat === 'high' ? 3 : 2,
-          });
-        });
+        const marker = L.marker([zone.lat, zone.lng], { icon }).addTo(mapInstance);
 
-        // Add country name label
-        const center = [
-          (bounds[0][0] + bounds[1][0]) / 2,
-          (bounds[0][1] + bounds[1][1]) / 2
-        ];
-        
-        const label = L.divIcon({
-          html: `<div style="
-            background: ${threatLevel.bg};
-            border: 1px solid ${threatLevel.color};
-            color: ${threatLevel.color};
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            white-space: nowrap;
-            font-family: 'Source Sans 3', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">${country.name}</div>`,
-          className: 'country-label',
-          iconSize: [80, 24],
-          iconAnchor: [40, 12],
-        });
+        // Popup
+        marker.bindPopup(`
+          <div style="font-family: 'Source Sans 3', sans-serif; min-width: 140px;">
+            <strong style="font-size: 1rem; color: #fff;">${zone.name}</strong>
+            <div style="margin: 6px 0; padding: 3px 10px; background: ${color}20; border: 1px solid ${color}40; border-radius: 12px; display: inline-block; font-size: 0.7rem; color: ${color}; text-transform: uppercase;">${zone.status}</div>
+            <div style="font-size: 0.75rem; color: #8b8b9b; margin-top: 4px;">
+              <div>Type: ${zone.type}</div>
+              <div>Last: ${zone.lastHit}</div>
+            </div>
+          </div>
+        `, { className: 'custom-popup' });
 
-        L.marker(center, { icon: label, interactive: false }).addTo(mapInstance);
+        marker.on('mouseover', function() { this.openPopup(); });
       });
 
       setMap(mapInstance);
@@ -224,113 +128,10 @@ export default function MapView({ zones }) {
     };
   }, [mounted]);
 
-  const handleBack = () => {
-    setSelectedCountry(null);
-    if (map) {
-      map.flyTo([30, 45], 5, { duration: 1 });
-    }
-  };
-
   if (!mounted) {
     return (
       <div className="loading">
         <div className="loading-spinner"></div>
-      </div>
-    );
-  }
-
-  // Country detail view
-  if (selectedCountry) {
-    const threatLevel = THREAT_LEVELS[selectedCountry.threat];
-    return (
-      <div style={{ 
-        height: '100%', 
-        display: 'flex', 
-        flexDirection: 'column',
-        background: 'var(--darker)',
-        padding: '20px'
-      }}>
-        <button 
-          onClick={handleBack}
-          style={{
-            background: 'var(--card)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'var(--text)',
-            padding: '10px 20px',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '14px',
-            marginBottom: '15px',
-            width: 'fit-content'
-          }}
-        >
-          ← Back to Map
-        </button>
-        
-        <div style={{
-          background: 'var(--card)',
-          borderRadius: '16px',
-          padding: '20px',
-          marginBottom: '15px',
-          border: `2px solid ${threatLevel.color}`
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--text)' }}>{selectedCountry.name}</h3>
-            <span style={{
-              background: threatLevel.bg,
-              color: threatLevel.color,
-              padding: '6px 14px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: '600'
-            }}>
-              {threatLevel.label} THREAT
-            </span>
-          </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-            {selectedCountry.hits.length} incident{selectedCountry.hits.length !== 1 ? 's' : ''} recorded
-          </p>
-        </div>
-
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          {selectedCountry.hits.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px', 
-              color: 'var(--text-muted)' 
-            }}>
-              No recent incidents recorded
-            </div>
-          ) : (
-            selectedCountry.hits.map((hit, i) => (
-              <div key={i} style={{
-                background: 'var(--card)',
-                borderRadius: '12px',
-                padding: '15px',
-                marginBottom: '10px',
-                borderLeft: `3px solid ${threatLevel.color}`,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <div>
-                  <div style={{ fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>
-                    {hit.type}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                    📍 {hit.lat.toFixed(4)}, {hit.lng.toFixed(4)}
-                  </div>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                  {hit.time}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
       </div>
     );
   }
