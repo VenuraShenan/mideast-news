@@ -19,10 +19,10 @@ const RSS_FEEDS = [
   { source: 'Reuters', url: 'https://www.reutersagency.com/feed/?best-regions=middle-east&post_type=post' },
 ];
 
-// Cache keys
-const CACHE_KEY = 'mideast_news_cache';
-const CACHE_TIME_KEY = 'mideast_news_time';
-const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes (shorter for fresher news)
+// Cache keys - add version to force refresh
+const CACHE_KEY = 'mideast_news_cache_v2';
+const CACHE_TIME_KEY = 'mideast_news_time_v2';
+const CACHE_DURATION = 60 * 1000; // 1 minute for testing
 
 async function fetchFromGNews() {
   try {
