@@ -22,7 +22,7 @@ const RSS_FEEDS = [
 // Cache keys
 const CACHE_KEY = 'mideast_news_cache';
 const CACHE_TIME_KEY = 'mideast_news_time';
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes (shorter for fresher news)
 
 async function fetchFromGNews() {
   try {
