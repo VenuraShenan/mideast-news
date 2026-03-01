@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
 
 * {
   margin: 0;
@@ -14,7 +14,7 @@
   --card: #12121a;
   --card-hover: #1a1a25;
   --text: #f0f0f5;
-  --text-muted: #6b6b7b;
+  --text-muted: #8b8b9b;
   --gradient-1: linear-gradient(135deg, #ff3d3d 0%, #ff6b35 100%);
   --gradient-2: linear-gradient(135deg, #00f5d4 0%, #00bbf9 100%);
   --glow-red: 0 0 30px rgba(255, 61, 61, 0.4);
@@ -23,14 +23,14 @@
 
 html, body {
   height: 100%;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
   background: var(--darker);
   color: var(--text);
   overflow-x: hidden;
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Merriweather', serif;
 }
 
 /* Animated background */

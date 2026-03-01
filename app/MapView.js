@@ -168,7 +168,7 @@ export default function MapView({ zones }) {
             font-size: 11px;
             font-weight: 600;
             white-space: nowrap;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Source Sans 3', sans-serif;
           ">${country.name}</div>`,
           className: 'country-label',
           iconSize: [100, 30],
