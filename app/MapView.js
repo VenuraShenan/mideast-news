@@ -2,88 +2,102 @@
 
 import { useEffect, useState } from 'react';
 
-// Country threat data with GeoJSON-style coordinates
-const COUNTRIES = {
-  gaza: { 
-    name: 'Gaza Strip', 
-    lat: 31.5, 
-    lng: 34.3, 
+// Simplified GeoJSON-like coordinates for Middle East countries
+const COUNTRIES_GEO = {
+  gaza: {
+    name: 'Gaza Strip',
     threat: 'critical',
     color: '#ff3d3d',
+    // Approximate polygon coordinates
+    bounds: [[31.2, 34.2], [31.7, 34.6]],
     hits: [
       { lat: 31.5, lng: 34.35, time: '2026-03-01 04:00', type: 'Airstrike' },
       { lat: 31.35, lng: 34.25, time: '2026-03-01 03:30', type: 'Artillery' },
       { lat: 31.55, lng: 34.4, time: '2026-03-01 02:15', type: 'Missile' },
     ]
   },
-  lebanon: { 
-    name: 'Lebanon', 
-    lat: 33.8, 
-    lng: 35.8, 
-    threat: 'high',
-    color: '#ff6b35',
-    hits: [
-      { lat: 33.5, lng: 35.5, time: '2026-03-01 03:30', type: 'Artillery' },
-      { lat: 33.2, lng: 35.3, time: '2026-03-01 02:00', type: 'Airstrike' },
-    ]
-  },
-  syria: { 
-    name: 'Syria', 
-    lat: 34.8, 
-    lng: 38.5, 
-    threat: 'high',
-    color: '#ff6b35',
-    hits: [
-      { lat: 35.2, lng: 36.8, time: '2026-03-01 02:15', type: 'Airstrike' },
-      { lat: 33.5, lng: 36.5, time: '2026-03-01 01:00', type: 'Clash' },
-    ]
-  },
-  israel: { 
-    name: 'Israel', 
-    lat: 31.0, 
-    lng: 34.8, 
+  israel: {
+    name: 'Israel',
     threat: 'target',
     color: '#ff3d3d',
+    bounds: [[29.5, 34.2], [33.3, 36.0]],
     hits: [
       { lat: 31.2, lng: 34.5, time: '2026-03-01 04:15', type: 'Missile Intercept' },
       { lat: 32.1, lng: 34.9, time: '2026-03-01 03:00', type: 'Rocket' },
     ]
   },
-  iran: { 
-    name: 'Iran', 
-    lat: 32.4, 
-    lng: 53.6, 
+  lebanon: {
+    name: 'Lebanon',
+    threat: 'high',
+    color: '#ff6b35',
+    bounds: [[33.0, 35.0], [34.7, 36.6]],
+    hits: [
+      { lat: 33.5, lng: 35.5, time: '2026-03-01 03:30', type: 'Artillery' },
+      { lat: 33.2, lng: 35.3, time: '2026-03-01 02:00', type: 'Airstrike' },
+    ]
+  },
+  syria: {
+    name: 'Syria',
+    threat: 'high',
+    color: '#ff6b35',
+    bounds: [[32.3, 35.5], [37.3, 42.4]],
+    hits: [
+      { lat: 35.2, lng: 36.8, time: '2026-03-01 02:15', type: 'Airstrike' },
+      { lat: 33.5, lng: 36.5, time: '2026-03-01 01:00', type: 'Clash' },
+    ]
+  },
+  westbank: {
+    name: 'West Bank',
+    threat: 'high',
+    color: '#ff6b35',
+    bounds: [[31.3, 34.9], [32.5, 35.6]],
+    hits: [
+      { lat: 31.9, lng: 35.2, time: '2026-03-01 01:00', type: 'Clash' },
+    ]
+  },
+  jordan: {
+    name: 'Jordan',
     threat: 'medium',
     color: '#ff9500',
+    bounds: [[29.2, 34.6], [33.4, 39.3]],
+    hits: []
+  },
+  iraq: {
+    name: 'Iraq',
+    threat: 'low',
+    color: '#6b7280',
+    bounds: [[29.5, 38.9], [37.4, 49.0]],
+    hits: []
+  },
+  iran: {
+    name: 'Iran',
+    threat: 'medium',
+    color: '#ff9500',
+    bounds: [[25.0, 44.0], [39.8, 63.3]],
     hits: [
       { lat: 32.5, lng: 53.5, time: '2026-02-27 12:00', type: 'Nuclear Site' },
     ]
   },
-  iraq: { 
-    name: 'Iraq', 
-    lat: 33.2, 
-    lng: 43.6, 
+  yemen: {
+    name: 'Yemen',
     threat: 'low',
     color: '#6b7280',
+    bounds: [[12.1, 41.8], [19.0, 56.5]],
     hits: []
   },
-  yemen: { 
-    name: 'Yemen', 
-    lat: 15.5, 
-    lng: 48.5, 
+  saudi: {
+    name: 'Saudi Arabia',
     threat: 'low',
     color: '#6b7280',
+    bounds: [[16.4, 34.5], [32.2, 55.7]],
     hits: []
   },
-  westbank: { 
-    name: 'West Bank', 
-    lat: 31.9, 
-    lng: 35.3, 
-    threat: 'high',
-    color: '#ff6b35',
-    hits: [
-      { lat: 31.9, lng: 35.2, time: '2026-03-01 01:00', type: 'Clash' },
-    ]
+  turkey: {
+    name: 'Turkey',
+    threat: 'low',
+    color: '#6b7280',
+    bounds: [[35.8, 26.0], [42.1, 44.8]],
+    hits: []
   },
 };
 
@@ -99,7 +113,6 @@ export default function MapView({ zones }) {
   const [mounted, setMounted] = useState(false);
   const [map, setMap] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
-  const [markers, setMarkers] = useState([]);
 
   useEffect(() => {
     setMounted(true);
@@ -130,52 +143,75 @@ export default function MapView({ zones }) {
         maxZoom: 19,
       }).addTo(mapInstance);
 
-      // Add country circles with threat coloring
-      Object.entries(COUNTRIES).forEach(([key, country]) => {
+      // Draw country borders with threat coloring
+      Object.entries(COUNTRIES_GEO).forEach(([key, country]) => {
         const threatLevel = THREAT_LEVELS[country.threat];
         
-        // Country circle
-        const circle = L.circle([country.lat, country.lng], {
+        // Create rectangle polygon for country
+        const bounds = country.bounds;
+        const polygon = L.rectangle(bounds, {
           color: country.color,
+          weight: country.threat === 'critical' || country.threat === 'target' ? 4 : 
+                  country.threat === 'high' ? 3 : 2,
           fillColor: country.color,
-          fillOpacity: 0.3,
-          radius: country.threat === 'critical' ? 150000 : 120000,
-          weight: 2,
+          fillOpacity: country.threat === 'critical' || country.threat === 'target' ? 0.3 :
+                      country.threat === 'high' ? 0.2 : 0.1,
+          dashArray: country.threat === 'low' ? '5, 10' : null,
         }).addTo(mapInstance);
 
-        // Click handler
-        circle.on('click', () => {
-          setSelectedCountry(COUNTRIES[key]);
-          mapInstance.flyTo([country.lat, country.lng], 8, { duration: 1 });
+        // Click to select country
+        polygon.on('click', () => {
+          setSelectedCountry(COUNTRIES_GEO[key]);
+          const center = [
+            (bounds[0][0] + bounds[1][0]) / 2,
+            (bounds[0][1] + bounds[1][1]) / 2
+          ];
+          mapInstance.flyTo(center, 7, { duration: 1 });
         });
 
         // Hover effects
-        circle.on('mouseover', function() {
-          this.setStyle({ fillOpacity: 0.6, weight: 4 });
+        polygon.on('mouseover', function() {
+          this.setStyle({ 
+            fillOpacity: country.threat === 'critical' || country.threat === 'target' ? 0.5 : 0.35,
+            weight: country.threat === 'critical' || country.threat === 'target' ? 6 : 
+                    country.threat === 'high' ? 5 : 3,
+          });
         });
-        circle.on('mouseout', function() {
-          this.setStyle({ fillOpacity: 0.3, weight: 2 });
+        polygon.on('mouseout', function() {
+          this.setStyle({ 
+            fillOpacity: country.threat === 'critical' || country.threat === 'target' ? 0.3 :
+                        country.threat === 'high' ? 0.2 : 0.1,
+            weight: country.threat === 'critical' || country.threat === 'target' ? 4 :
+                    country.threat === 'high' ? 3 : 2,
+          });
         });
 
-        // Label
+        // Add country name label
+        const center = [
+          (bounds[0][0] + bounds[1][0]) / 2,
+          (bounds[0][1] + bounds[1][1]) / 2
+        ];
+        
         const label = L.divIcon({
           html: `<div style="
             background: ${threatLevel.bg};
             border: 1px solid ${threatLevel.color};
             color: ${threatLevel.color};
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
             font-weight: 600;
             white-space: nowrap;
             font-family: 'Source Sans 3', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           ">${country.name}</div>`,
           className: 'country-label',
-          iconSize: [100, 30],
-          iconAnchor: [50, 15],
+          iconSize: [80, 24],
+          iconAnchor: [40, 12],
         });
 
-        L.marker([country.lat, country.lng], { icon: label, interactive: false }).addTo(mapInstance);
+        L.marker(center, { icon: label, interactive: false }).addTo(mapInstance);
       });
 
       setMap(mapInstance);
@@ -220,7 +256,7 @@ export default function MapView({ zones }) {
             background: 'var(--card)',
             border: '1px solid rgba(255,255,255,0.1)',
             color: 'var(--text)',
-            padding: '10',
+            padding: '10px 20px',
             borderRadius: '10px',
             cursor: 'pointer',
             display: 'flex',
@@ -239,7 +275,7 @@ export default function MapView({ zones }) {
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '15px',
-          border: `1px solid ${threatLevel.color}40`
+          border: `2px solid ${threatLevel.color}`
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <h3 style={{ fontSize: '1.4rem', color: 'var(--text)' }}>{selectedCountry.name}</h3>
